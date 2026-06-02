@@ -1,87 +1,50 @@
 "use client";
 
-import { SignInMethodDivider } from "@/components/SignInMethodDivider";
+import { FormEvent, useState } from "react";
+import { useRouter } from "next/navigation";
+import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useAuthActions } from "@convex-dev/auth/react";
-import { GitHubLogoIcon } from "@radix-ui/react-icons";
-import { toast, Toaster } from "sonner";
-import { useState } from "react";
 
 export default function SignInPage() {
-  const [step, setStep] = useState<"signIn" | "linkSent">("signIn");
+  const router = useRouter();
+  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setBusy(true);
+    setError("");
+    const form = new FormData(event.currentTarget);
+    const email = String(form.get("email") ?? "");
+    const password = String(form.get("password") ?? "");
+    const name = String(form.get("name") ?? "Elevate CRM User");
+    const result =
+      mode === "signup"
+        ? await authClient.signUp.email({ email, password, name })
+        : await authClient.signIn.email({ email, password });
+    setBusy(false);
+    if (result.error) return setError(result.error.message ?? "Authentication failed");
+    router.push("/product");
+  }
 
   return (
-    <div className="flex min-h-screen w-full container my-auto mx-auto">
-      <div className="max-w-[384px] mx-auto flex flex-col my-auto gap-4 pb-8">
-        {step === "signIn" ? (
-          <>
-            <h2 className="font-semibold text-2xl tracking-tight">
-              Sign in or create an account
-            </h2>
-            <SignInWithGitHub />
-            <SignInMethodDivider />
-            <SignInWithMagicLink handleLinkSent={() => setStep("linkSent")} />
-          </>
-        ) : (
-          <>
-            <h2 className="font-semibold text-2xl tracking-tight">
-              Check your email
-            </h2>
-            <p>A sign-in link has been sent to your email address.</p>
-            <Button
-              className="p-0 self-start"
-              variant="link"
-              onClick={() => setStep("signIn")}
-            >
-              Cancel
-            </Button>
-          </>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function SignInWithGitHub() {
-  const { signIn } = useAuthActions();
-  return (
-    <Button
-      className="flex-1"
-      variant="outline"
-      type="button"
-      onClick={() => void signIn("github", { redirectTo: "/product" })}
-    >
-      <GitHubLogoIcon className="mr-2 h-4 w-4" /> GitHub
-    </Button>
-  );
-}
-
-function SignInWithMagicLink({
-  handleLinkSent,
-}: {
-  handleLinkSent: () => void;
-}) {
-  const { signIn } = useAuthActions();
-  return (
-    <form
-      className="flex flex-col"
-      onSubmit={(event) => {
-        event.preventDefault();
-        const formData = new FormData(event.currentTarget);
-        formData.set("redirectTo", "/product");
-        signIn("resend", formData)
-          .then(handleLinkSent)
-          .catch((error) => {
-            console.error(error);
-            toast.error("Could not send sign-in link");
-          });
-      }}
-    >
-      <label htmlFor="email">Email</label>
-      <Input name="email" id="email" className="mb-4" autoComplete="email" />
-      <Button type="submit">Send sign-in link</Button>
-      <Toaster />
-    </form>
+    <main className="min-h-screen bg-slate-950 px-6 py-16 text-slate-100">
+      <form onSubmit={submit} className="mx-auto max-w-sm space-y-4 rounded-xl border border-slate-800 bg-slate-900 p-6 shadow-2xl">
+        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-orange-400">Elevate Commerce</p>
+        <h1 className="text-2xl font-bold">{mode === "signin" ? "Sign in to CRM" : "Create CRM account"}</h1>
+        {mode === "signup" && <Input name="name" placeholder="Your name" required />}
+        <Input name="email" type="email" placeholder="Email address" required />
+        <Input name="password" type="password" placeholder="Password" minLength={8} required />
+        {error && <p className="text-sm text-red-400">{error}</p>}
+        <Button className="w-full bg-orange-600 hover:bg-orange-500" disabled={busy}>
+          {busy ? "Working..." : mode === "signin" ? "Sign in" : "Create account"}
+        </Button>
+        <button className="w-full text-sm text-slate-400 hover:text-white" type="button" onClick={() => setMode(mode === "signin" ? "signup" : "signin")}>
+          {mode === "signin" ? "Create your first account" : "Already have an account? Sign in"}
+        </button>
+      </form>
+    </main>
   );
 }

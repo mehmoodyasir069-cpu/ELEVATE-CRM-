@@ -9,9 +9,8 @@
  */
 
 import type * as auth from "../auth.js";
+import type * as crm from "../crm.js";
 import type * as http from "../http.js";
-import type * as messages from "../messages.js";
-import type * as users from "../users.js";
 
 import type {
   ApiFromModules,
@@ -21,9 +20,8 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
+  crm: typeof crm;
   http: typeof http;
-  messages: typeof messages;
-  users: typeof users;
 }>;
 
 /**
@@ -52,4 +50,6 @@ export declare const internal: FilterApi<
   FunctionReference<any, "internal">
 >;
 
-export declare const components: {};
+export declare const components: {
+  betterAuth: import("@convex-dev/better-auth/_generated/component.js").ComponentApi<"betterAuth">;
+};
