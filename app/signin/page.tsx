@@ -41,6 +41,10 @@ export default function SignInPage() {
         <Button className="w-full bg-orange-600 hover:bg-orange-500" disabled={busy}>
           {busy ? "Working..." : mode === "signin" ? "Sign in" : "Create account"}
         </Button>
+        <p className="rounded-lg border border-slate-800 bg-slate-950/70 px-3 py-2 text-xs leading-5 text-slate-400">
+          Six team logins are already seeded in Convex. Use this form to sign in, or switch to sign up to create another
+          team account when you need one.
+        </p>
         <button className="w-full text-sm text-slate-400 hover:text-white" type="button" onClick={() => setMode(mode === "signin" ? "signup" : "signin")}>
           {mode === "signin" ? "Create your first account" : "Already have an account? Sign in"}
         </button>

@@ -6,6 +6,7 @@
     "dev": "npm-run-all --parallel dev:frontend dev:backend",
     "dev:frontend": "next dev --turbopack",
     "dev:backend": "convex dev",
+    "seed:auth": "node scripts/seed-auth-users.mjs",
     "seed:local": "node scripts/import-local-seed.mjs",
     "build": "next build",
     "start": "next start",
