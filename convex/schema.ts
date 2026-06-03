@@ -80,6 +80,7 @@ export default defineSchema({
     team: optionalString,
     assistantName: optionalString,
     partnerName: optionalString,
+    partnerPct: optionalNumber,
     month: v.string(),
     gross: optionalNumber,
     expenses: optionalNumber,
