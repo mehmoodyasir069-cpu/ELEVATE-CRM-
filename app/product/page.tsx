@@ -70,10 +70,22 @@ function CrmDashboard() {
           <Stat label="Contracts pending" value={summary?.pendingContracts} warning />
           <Stat label="Missing WhatsApp" value={summary?.missingWhatsApp} warning />
         </section>
+        <section className="rounded-xl border border-slate-800 bg-slate-900 p-4 text-sm text-slate-300">
+          <p className="font-semibold text-white">Database import status</p>
+          <p className="mt-1 text-slate-400">
+            Source: {String(summary?.source ?? "Unknown")} | generated {String(summary?.generatedAt ?? "unknown")}
+          </p>
+          <p className="mt-1 text-slate-400">
+            Last import: {String(summary?.latestImport?.importedAt ?? "not imported yet")} | mode {String(summary?.latestImport?.sourceKind ?? "unknown")}
+          </p>
+          <p className="mt-1 text-slate-500">
+            Use Restore JSON to load the exact latest browser backup when local data has moved beyond the original ledger seed.
+          </p>
+        </section>
         <section className="overflow-hidden rounded-xl border border-slate-800 bg-slate-900">
           <div className="border-b border-slate-800 px-4 py-3">
             <h2 className="font-semibold">Client ledger</h2>
-            <p className="text-xs text-slate-400">{String(summary?.source ?? "Imported JSON")} | generated {String(summary?.generatedAt ?? "unknown")}</p>
+            <p className="text-xs text-slate-400">{String(summary?.source ?? "Imported JSON")} | generated {String(summary?.generatedAt ?? "unknown")} | updated {String(summary?.updatedAt ?? "unknown")}</p>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">

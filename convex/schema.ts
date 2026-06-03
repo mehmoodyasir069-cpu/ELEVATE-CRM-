@@ -133,4 +133,18 @@ export default defineSchema({
     key: v.string(),
     value: v.any(),
   }).index("by_key", ["key"]),
+  importRuns: defineTable({
+    sourceKind: v.string(),
+    sourceLabel: optionalString,
+    backupFormat: optionalString,
+    sourceGeneratedAt: optionalString,
+    sourceUpdatedAt: optionalString,
+    importedAt: v.string(),
+    clientCount: v.number(),
+    leadCount: v.number(),
+    plEntryCount: v.number(),
+    cableCount: v.number(),
+    settingsCount: v.number(),
+    metadataCount: v.number(),
+  }).index("by_imported_at", ["importedAt"]),
 });
