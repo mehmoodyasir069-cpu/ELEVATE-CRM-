@@ -18,6 +18,10 @@ export const createAuth = (ctx: GenericCtx<DataModel>) =>
     trustedOrigins: [
       "http://localhost:3000",
       "http://127.0.0.1:3000",
+      "http://localhost:8766",
+      "http://127.0.0.1:8766",
+      "http://localhost:5173",
+      "http://127.0.0.1:5173",
       "https://*.netlify.app",
       "https://*.convex.site",
       siteUrl,
