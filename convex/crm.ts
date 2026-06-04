@@ -68,6 +68,21 @@ export const replaceSnapshot = mutation({
   handler: async (ctx, { snapshot }) => {
     await requireUser(ctx);
     const normalized = normalizeSnapshot(snapshot);
+    const currentMetadata = await ctx.db.query("metadata").collect();
+    const currentImportRuns = await ctx.db.query("importRuns").withIndex("by_imported_at").collect();
+    const currentStamp = Math.max(
+      metadataTimestamp(currentMetadata, "updatedAt"),
+      metadataTimestamp(currentMetadata, "restoredAt"),
+      currentImportRuns.length ? Date.parse([...currentImportRuns].sort((a, b) => b.importedAt.localeCompare(a.importedAt))[0].importedAt) || 0 : 0,
+    );
+    const incomingStamp = Math.max(
+      metadataTimestamp(normalized.metadata, "updatedAt"),
+      metadataTimestamp(normalized.metadata, "restoredAt"),
+      Date.parse(String(normalized.importRun.importedAt ?? "")) || 0,
+    );
+    if (currentStamp > 0 && incomingStamp > 0 && incomingStamp + 1000 < currentStamp) {
+      throw new Error("Stale snapshot rejected. Refresh to load the latest data before saving.");
+    }
     const tables = ["clients", "leads", "plEntries", "cables", "settings", "metadata"] as const;
     for (const table of tables) {
       for (const item of await ctx.db.query(table).collect()) await ctx.db.delete(item._id);
@@ -110,9 +125,56 @@ function cleanLead(value: Record<string, unknown>) {
 
 function cleanPlEntry(value: Record<string, unknown>) {
   return {
-    ...clean(value),
     externalId: String(value.externalId ?? value.id),
+    clientId: String(value.clientId ?? value.clientExternalId ?? ""),
     clientExternalId: String(value.clientExternalId ?? value.clientId),
+    clientName: value.clientName,
+    team: value.team,
+    assistantName: value.assistantName,
+    partnerName: value.partnerName,
+    partnerPct: value.partnerPct,
+    month: value.month,
+    gross: value.gross,
+    expenses: value.expenses,
+    net: value.net,
+    baseProfit: value.baseProfit,
+    serviceCharges: value.serviceCharges,
+    serviceChargesCollected: value.serviceChargesCollected,
+    officeCharge: value.officeCharge,
+    officeChargeMethod: value.officeChargeMethod,
+    officeChargeReserve: value.officeChargeReserve,
+    gbpReceived: value.gbpReceived,
+    pkrReceived: value.pkrReceived,
+    gbpPkrRate: value.gbpPkrRate,
+    invoiceSent: value.invoiceSent,
+    collectionStatus: value.collectionStatus,
+    tlPaid: value.tlPaid,
+    vaPaid: value.vaPaid,
+    partnerPaid: value.partnerPaid,
+    yasirPaid: value.yasirPaid,
+    zubairPaid: value.zubairPaid,
+    splitBase: value.splitBase,
+    agencyBeforeCharge: value.agencyBeforeCharge,
+    agencyShare: value.agencyShare,
+    amountOwedGbp: value.amountOwedGbp,
+    clientShare: value.clientShare,
+    tlName: value.tlName,
+    vaName: value.vaName,
+    manualClientShare: value.manualClientShare,
+    manualOfficePool: value.manualOfficePool,
+    manualPartnerShare: value.manualPartnerShare,
+    manualTlShare: value.manualTlShare,
+    manualVaShare: value.manualVaShare,
+    manualYasirShare: value.manualYasirShare,
+    manualZubairShare: value.manualZubairShare,
+    vaPct: value.vaPct,
+    tlPct: value.tlPct,
+    vaShare: value.vaShare,
+    tlShare: value.tlShare,
+    partnerShare: value.partnerShare,
+    yasirShare: value.yasirShare,
+    zubairShare: value.zubairShare,
+    notes: value.notes,
   };
 }
 
@@ -122,6 +184,12 @@ function cleanCable(value: Record<string, unknown>) {
     externalId: String(value.externalId ?? value.id),
     clientExternalId: String(value.clientExternalId ?? value.clientId),
   };
+}
+
+function metadataTimestamp(rows: Record<string, unknown>[], key: string) {
+  const raw = rows.find((item) => String(item?.key) === key)?.value;
+  const ts = Date.parse(String(raw ?? ""));
+  return Number.isFinite(ts) ? ts : 0;
 }
 
 function normalizeSnapshot(raw: any) {
